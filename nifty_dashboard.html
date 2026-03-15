@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>NIFTY DESK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --bg2: #0d1326;
+    --card: rgba(255,255,255,0.04);
+    --card-border: rgba(255,255,255,0.08);
+    --card-hover: rgba(255,255,255,0.06);
+    --green: #00d4a1;
+    --red: #ff4d6d;
+    --amber: #f0a500;
+    --blue: #4da6ff;
+    --purple: #a78bfa;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #475569;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 20% 20%, rgba(0,212,161,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(77,166,255,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
+
+  /* ===== LOGIN ===== */
+  #login-screen {
+    position: fixed; inset: 0; z-index: 1000;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .login-box {
+    width: 100%; max-width: 400px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 32px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--green), var(--blue), var(--purple));
+  }
+  .login-logo {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+  }
+  .login-sub {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 28px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .form-group input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-text-security: none;
+  }
+  .form-group input:focus { border-color: var(--green); }
+  .form-group input[type=password] { -webkit-text-security: disc; }
+  .login-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--green), #00b891);
+    color: #0a0f1e;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.2s, transform 0.1s;
+    min-height: 48px;
+  }
+  .login-btn:hover { opacity: 0.9; }
+  .login-btn:active { transform: scale(0.98); }
+  .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .login-error {
+    background: rgba(255,77,109,0.12);
+    border: 1px solid rgba(255,77,109,0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--red);
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* ===== DASHBOARD ===== */
+  #dashboard { display: none; }
+
+  /* ===== HEADER ===== */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,15,30,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border);
+    height: 56px;
+    display: flex; align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .header-logo {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 3px;
+    white-space: nowrap;
+  }
+  .header-clock {
+    flex: 1;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .market-pill {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .market-pill.open { background: rgba(0,212,161,0.15); color: var(--green); border: 1px solid rgba(0,212,161,0.3); }
+  .market-pill.closed { background: rgba(255,77,109,0.15); color: var(--red); border: 1px solid rgba(255,77,109,0.3); }
+  .market-pill.preopen { background: rgba(240,165,0,0.15); color: var(--amber); border: 1px solid rgba(240,165,0,0.3); }
+  .settings-btn {
+    background: none; border: 1px solid var(--card-border);
+    border-radius: 8px; color: var(--text2);
+    width: 36px; height: 36px;
+    cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .settings-btn:hover { border-color: var(--green); color: var(--green); }
+
+  /* ===== TABS ===== */
+  .tabs-bar {
+    display: flex;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--card-border);
+    padding: 0 16px;
+    position: sticky; top: 56px; z-index: 99;
+  }
+  .tab-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 12px 16px;
+    background: none; border: none; border-bottom: 2px solid transparent;
+    color: var(--text2); cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    min-height: 44px;
+  }
+  .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+
+  /* ===== MAIN CONTENT ===== */
+  .main { padding: 16px; max-width: 480px; margin: 0 auto; position: relative; z-index: 1; }
+
+  /* ===== CARD ===== */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title span { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+
+  /* ===== SKELETON ===== */
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 16px;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* ===== PRICE CARD ===== */
+  .price-ltp {
+    font-family: var(--mono);
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .price-change {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .price-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .price-stat { text-align: center; }
+  .price-stat-label { font-size: 9px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+  .price-stat-val { font-family: var(--mono); font-size: 12px; color: var(--text); }
+  .price-vol { font-size: 11px; color: var(--text2); }
+  .price-ts { font-family: var(--mono); font-size: 10px; color: var(--text3); text-align: right; margin-top: 6px; }
+
+  /* ===== LEVELS CARD ===== */
+  .levels-table { width: 100%; border-collapse: collapse; }
+  .levels-table tr { border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .levels-table tr:last-child { border-bottom: none; }
+  .levels-table td {
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+  .levels-table td:nth-child(1) { color: var(--text2); font-size: 11px; width: 50px; }
+  .levels-table td:nth-child(2) { font-family: var(--mono); font-weight: 600; }
+  .levels-table td:nth-child(3) { font-family: var(--mono); font-size: 11px; text-align: right; }
+
+  /* ===== S&R CARD ===== */
+  .sr-item {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .sr-label { font-size: 11px; color: var(--text2); width: 28px; font-family: var(--mono); }
+  .sr-bar-wrap { flex: 1; height: 22px; background: rgba(255,255,255,0.04); border-radius: 4px; position: relative; overflow: hidden; }
+  .sr-bar { height: 100%; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; }
+  .sr-price { font-family: var(--mono); font-size: 11px; font-weight: 600; }
+  .sr-dist { font-family: var(--mono); font-size: 10px; width: 60px; text-align: right; }
+  .sr-dots { font-size: 11px; width: 36px; text-align: right; }
+
+  /* ===== DAY TREND ===== */
+  .trend-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .trend-row:last-child { border-bottom: none; }
+  .trend-label { font-size: 11px; color: var(--text2); }
+  .trend-val { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+  .range-bar-wrap { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; margin-top: 8px; position: relative; }
+  .range-bar-fill { height: 100%; background: linear-gradient(90deg, var(--red), var(--amber), var(--green)); border-radius: 3px; }
+  .range-marker { position: absolute; top: -3px; width: 12px; height: 12px; background: white; border-radius: 50%; transform: translateX(-50%); box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+
+  /* ===== VIX CARD ===== */
+  .vix-val { font-family: var(--mono); font-size: 40px; font-weight: 700; }
+  .vix-regime {
+    display: inline-block;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px;
+    padding: 4px 10px; border-radius: 20px;
+    margin: 6px 0 12px;
+  }
+  .vix-rec { font-size: 12px; color: var(--text2); }
+  .sparkline { display: flex; align-items: flex-end; gap: 3px; height: 32px; margin-top: 12px; }
+  .spark-bar { flex: 1; border-radius: 2px 2px 0 0; min-height: 2px; }
+
+  /* ===== EVENTS CARD ===== */
+  .event-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .event-row:last-child { border-bottom: none; }
+  .event-time { font-family: var(--mono); font-size: 11px; color: var(--text2); min-width: 50px; }
+  .event-name { font-size: 12px; flex: 1; }
+  .event-impact { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 4px; letter-spacing: 1px; }
+  .event-high { background: rgba(240,165,0,0.2); color: var(--amber); }
+  .event-med { background: rgba(77,166,255,0.2); color: var(--blue); }
+  .events-tomorrow { margin-top: 12px; }
+  .events-tomorrow-label { font-size: 10px; color: var(--text3); letter-spacing: 1px; margin-bottom: 8px; }
+
+  /* ===== FII DII CARD ===== */
+  .fii-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .fii-table th { font-size: 10px; color: var(--text2); text-align: right; padding: 4px 6px; font-weight: 500; }
+  .fii-table th:first-child { text-align: left; }
+  .fii-table td { font-family: var(--mono); padding: 6px 6px; text-align: right; }
+  .fii-table td:first-child { text-align: left; color: var(--text2); font-family: var(--sans); }
+  .fii-net-large { font-family: var(--mono); font-size: 28px; font-weight: 700; margin-top: 12px; }
+  .fii-mini-bars { display: flex; gap: 3px; align-items: flex-end; height: 28px; margin-top: 8px; }
+  .fii-bar { flex: 1; border-radius: 2px 2px 0 0; min-height: 2px; }
+  .refresh-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+  .refresh-btn { font-size: 11px; color: var(--text2); background: rgba(255,255,255,0.06); border: 1px solid var(--card-border); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-family: var(--mono); }
+  .refresh-btn:hover { border-color: var(--green); color: var(--green); }
+  .refresh-cd { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+
+  /* ===== OI CARD ===== */
+  .sub-tabs { display: flex; gap: 0; margin-bottom: 12px; border: 1px solid var(--card-border); border-radius: 8px; overflow: hidden; }
+  .sub-tab { flex: 1; padding: 8px; font-size: 11px; font-family: var(--mono); font-weight: 600; letter-spacing: 1px; background: none; border: none; color: var(--text2); cursor: pointer; transition: background 0.2s, color 0.2s; min-height: 36px; }
+  .sub-tab.active { background: rgba(0,212,161,0.12); color: var(--green); }
+  .oi-snaps { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .snap-pill { font-family: var(--mono); font-size: 10px; padding: 4px 8px; border-radius: 20px; border: 1px solid var(--card-border); cursor: pointer; color: var(--text2); transition: all 0.2s; }
+  .snap-pill.active { background: rgba(240,165,0,0.15); border-color: var(--amber); color: var(--amber); }
+  .snap-pill.future { opacity: 0.3; cursor: default; }
+  .oi-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .oi-table th { font-size: 9px; color: var(--text2); padding: 4px 3px; text-align: center; font-weight: 500; letter-spacing: 1px; }
+  .oi-table td { font-family: var(--mono); padding: 5px 3px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .oi-table tr.atm-row td { background: rgba(240,165,0,0.08); color: var(--amber); }
+  .oi-table tr.max-ce td:nth-child(1),
+  .oi-table tr.max-ce td:nth-child(2) { color: var(--red); font-weight: 600; }
+  .oi-table tr.max-pe td:nth-child(4),
+  .oi-table tr.max-pe td:nth-child(5) { color: var(--green); font-weight: 600; }
+  .oi-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .oi-metric { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; }
+  .oi-metric-label { font-size: 10px; color: var(--text2); margin-bottom: 4px; }
+  .oi-metric-val { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+  .oi-metric-sub { font-size: 10px; margin-top: 2px; }
+
+  /* ===== EMA CARD ===== */
+  .ema-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ema-box { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px; }
+  .ema-box-title { font-size: 10px; color: var(--text2); letter-spacing: 1px; margin-bottom: 8px; }
+  .ema-val-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .ema-label { font-size: 10px; color: var(--text2); }
+  .ema-val { font-family: var(--mono); font-size: 13px; }
+  .ema-signal { font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 20px; text-align: center; margin-top: 8px; }
+  .ema-signal.bull { background: rgba(0,212,161,0.15); color: var(--green); }
+  .ema-signal.bear { background: rgba(255,77,109,0.15); color: var(--red); }
+  .ema-signal.neutral { background: rgba(240,165,0,0.15); color: var(--amber); }
+  .update-btn { width: 100%; margin-top: 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; color: var(--text2); font-family: var(--mono); font-size: 12px; cursor: pointer; transition: all 0.2s; }
+  .update-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+  /* ===== MOMENTUM CARD ===== */
+  .momentum-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .momentum-box { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px; }
+  .momentum-box-title { font-size: 10px; color: var(--text2); letter-spacing: 1px; margin-bottom: 10px; }
+  .gauge-wrap { position: relative; width: 80px; height: 40px; margin: 0 auto 8px; }
+  .gauge-arc { fill: none; stroke-width: 6; stroke-linecap: round; }
+  .rsi-val-big { font-family: var(--mono); font-size: 24px; font-weight: 700; text-align: center; }
+  .rsi-label { font-size: 10px; text-align: center; margin-top: 2px; }
+  .macd-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px; }
+  .macd-key { color: var(--text2); }
+  .macd-val { font-family: var(--mono); }
+  .macd-hist-bars { display: flex; gap: 2px; align-items: center; height: 24px; margin-top: 8px; }
+  .macd-bar { flex: 1; border-radius: 1px; min-height: 1px; }
+
+  /* ===== VWAP CARD ===== */
+  .vwap-val { font-family: var(--mono); font-size: 32px; font-weight: 700; }
+  .vwap-rows { margin-top: 12px; }
+  .vwap-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; }
+  .vwap-row:last-child { border-bottom: none; }
+  .vwap-row-label { color: var(--text2); }
+  .vwap-row-val { font-family: var(--mono); font-weight: 600; }
+
+  /* ===== HVZ CARD ===== */
+  .hvz-chart { position: relative; background: rgba(255,255,255,0.02); border-radius: 8px; overflow: hidden; height: 160px; margin-top: 8px; }
+  .hvz-band { position: absolute; left: 0; right: 0; display: flex; align-items: center; padding: 0 10px; }
+  .hvz-band-label { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,0.5); }
+  .hvz-price-line { position: absolute; left: 0; right: 0; height: 1px; background: white; }
+  .hvz-price-label { position: absolute; right: 4px; font-family: var(--mono); font-size: 9px; color: white; background: rgba(0,0,0,0.6); padding: 1px 3px; border-radius: 2px; }
+  .hvz-items { margin-top: 10px; }
+  .hvz-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .hvz-item-stars { color: var(--amber); font-size: 11px; width: 30px; }
+  .hvz-item-range { font-family: var(--mono); font-size: 11px; flex: 1; }
+  .hvz-item-cnt { font-size: 10px; color: var(--text2); }
+
+  /* ===== RELOGIN MODAL ===== */
+  #relogin-modal {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.8);
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  #relogin-modal.show { display: flex; }
+  .relogin-box {
+    background: var(--bg2);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 24px;
+    width: 100%; max-width: 360px;
+  }
+  .relogin-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .relogin-sub { font-size: 12px; color: var(--text2); margin-bottom: 20px; }
+
+  /* ===== UTILITY ===== */
+  .green { color: var(--green); }
+  .red { color: var(--red); }
+  .amber { color: var(--amber); }
+  .blue { color: var(--blue); }
+  .text2 { color: var(--text2); }
+  .error-state { padding: 16px; text-align: center; color: var(--text2); font-size: 12px; }
+  .error-state .retry-btn { margin-top: 8px; font-family: var(--mono); font-size: 11px; background: rgba(255,77,109,0.1); border: 1px solid rgba(255,77,109,0.3); color: var(--red); border-radius: 6px; padding: 6px 14px; cursor: pointer; }
+  .mt4 { margin-top: 4px; }
+  .divider { height: 1px; background: var(--card-border); margin: 10px 0; }
+  .row { display: flex; align-items: center; }
+  .between { justify-content: space-between; }
+  .gap8 { gap: 8px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">NIFTY DESK</div>
+    <div class="login-sub">Angel One SmartAPI · Intraday Terminal</div>
+    <div class="form-group">
+      <label>API Key</label>
+      <input type="text" id="l-apikey" placeholder="Enter API Key" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="form-group">
+      <label>Client Code</label>
+      <input type="text" id="l-clientcode" value="AACF332651" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="form-group">
+      <label>PIN</label>
+      <input type="password" id="l-pin" placeholder="4-digit PIN">
+    </div>
+    <div class="form-group">
+      <label>TOTP Secret (Base32)</label>
+      <input type="password" id="l-totp" placeholder="Base32 secret key">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">CONNECT →</button>
+    <div class="login-error" id="login-error"></div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button onclick="testConnection()" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px;color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer">
+        ▶ TEST PROXY + TOTP
+      </button>
+    </div>
+    <div id="debug-out" style="display:none;margin-top:10px;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.08);border-radius:8px;font-family:monospace;font-size:11px;color:#e2e8f0;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto"></div>
+
+  </div>
+</div>
+
+<!-- RE-LOGIN MODAL -->
+<div id="relogin-modal">
+  <div class="relogin-box">
+    <div class="relogin-title">Session Expired</div>
+    <div class="relogin-sub">Please re-enter your PIN and TOTP secret to continue.</div>
+    <div class="form-group">
+      <label>PIN</label>
+      <input type="password" id="rl-pin" placeholder="4-digit PIN">
+    </div>
+    <div class="form-group">
+      <label>TOTP Secret (Base32)</label>
+      <input type="password" id="rl-totp" placeholder="Base32 secret">
+    </div>
+    <button class="login-btn" onclick="doRelogin()">RECONNECT →</button>
+    <div class="login-error" id="relogin-error"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-logo">NIFTY DESK</div>
+    <div class="header-clock" id="header-clock">--:--:--</div>
+    <div class="header-right">
+      <div class="market-pill closed" id="market-pill">CLOSED</div>
+      <button class="settings-btn" onclick="showSettings()" title="Settings / Re-login">⚙</button>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs-bar">
+    <button class="tab-btn active" id="tab-nifty" onclick="switchTab('nifty')">NIFTY 50</button>
+    <button class="tab-btn" id="tab-banknifty" onclick="switchTab('banknifty')">BANK NIFTY</button>
+  </div>
+
+  <div class="main">
+    <!-- 1. PRICE CARD -->
+    <div class="card" style="animation-delay:0s">
+      <div class="card-title">LIVE QUOTE <span id="price-ts">--</span></div>
+      <div id="price-card-body">
+        <div class="skeleton" style="height:40px;width:200px;margin-bottom:8px"></div>
+        <div class="skeleton" style="height:16px;width:140px;margin-bottom:16px"></div>
+        <div class="skeleton" style="height:32px"></div>
+      </div>
+    </div>
+
+    <!-- 2. KEY LEVELS -->
+    <div class="card" style="animation-delay:0.1s">
+      <div class="card-title">KEY LEVELS <span id="levels-ts">--</span></div>
+      <div id="levels-body"><div class="skeleton" style="height:100px"></div></div>
+    </div>
+
+    <!-- 3. S&R ZONES -->
+    <div class="card" style="animation-delay:0.15s">
+      <div class="card-title">S&R ZONES</div>
+      <div id="sr-body"><div class="skeleton" style="height:140px"></div></div>
+    </div>
+
+    <!-- 4. DAY TREND -->
+    <div class="card" style="animation-delay:0.2s">
+      <div class="card-title">DAY TREND</div>
+      <div id="trend-body"><div class="skeleton" style="height:120px"></div></div>
+    </div>
+
+    <!-- 5. VIX -->
+    <div class="card" style="animation-delay:0.25s">
+      <div class="card-title">INDIA VIX <span id="vix-ts">--</span></div>
+      <div id="vix-body"><div class="skeleton" style="height:80px"></div></div>
+    </div>
+
+    <!-- 6. MARKET EVENTS -->
+    <div class="card" style="animation-delay:0.3s">
+      <div class="card-title">TODAY'S EVENTS <span id="events-ts">--</span></div>
+      <div id="events-body"><div class="skeleton" style="height:80px"></div></div>
+    </div>
+
+    <!-- 7. FII DII -->
+    <div class="card" style="animation-delay:0.35s">
+      <div class="card-title">FII / DII FLOW <span id="fiidii-ts">--</span></div>
+      <div id="fiidii-body"><div class="skeleton" style="height:100px"></div></div>
+    </div>
+
+    <!-- 8. OI TRACKER -->
+    <div class="card" style="animation-delay:0.4s">
+      <div class="card-title">OI TRACKER</div>
+      <div class="sub-tabs">
+        <button class="sub-tab active" id="oi-tab-nifty" onclick="switchOiTab('nifty')">NIFTY OI</button>
+        <button class="sub-tab" id="oi-tab-banknifty" onclick="switchOiTab('banknifty')">BANKNIFTY OI</button>
+      </div>
+      <div class="oi-snaps" id="oi-snaps"></div>
+      <div id="oi-body"><div class="skeleton" style="height:200px"></div></div>
+    </div>
+
+    <!-- 9. EMA -->
+    <div class="card" style="animation-delay:0.45s">
+      <div class="card-title">EMA SIGNALS</div>
+      <div id="ema-body"><div class="skeleton" style="height:120px"></div></div>
+    </div>
+
+    <!-- 10. MOMENTUM -->
+    <div class="card" style="animation-delay:0.5s">
+      <div class="card-title">MOMENTUM</div>
+      <div id="momentum-body"><div class="skeleton" style="height:140px"></div></div>
+    </div>
+
+    <!-- 11. VWAP -->
+    <div class="card" style="animation-delay:0.55s">
+      <div class="card-title">VWAP</div>
+      <div id="vwap-body"><div class="skeleton" style="height:80px"></div></div>
+    </div>
+
+    <!-- 12. HVZ -->
+    <div class="card" style="animation-delay:0.6s">
+      <div class="card-title">VOLUME NODES (20 SESSIONS)</div>
+      <div class="sub-tabs">
+        <button class="sub-tab active" id="hvz-tab-nifty" onclick="switchHvzTab('nifty')">NIFTY</button>
+        <button class="sub-tab" id="hvz-tab-banknifty" onclick="switchHvzTab('banknifty')">BANKNIFTY</button>
+      </div>
+      <div id="hvz-body"><div class="skeleton" style="height:160px"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// STATE
+// ================================================================
+const STATE = {
+  tab: 'nifty',
+  oiTab: 'nifty',
+  hvzTab: 'nifty',
+  ltp: { nifty: null, banknifty: null },
+  quote: { nifty: null, banknifty: null },
+  candles: { nifty: [], banknifty: [] },
+  vixHistory: [],
+  scripMaster: null,
+  fiiDiiCountdown: 3600,
+  oiActiveSnap: null,
+  oiSnapTimes: ['09:15','09:30','10:30','11:30','12:30','13:30','14:30','15:15'],
+};
+
+const TOKENS = {
+  nifty: { token: '99926000', exchange: 'NSE', name: 'NIFTY', expiry: 'thursday', strike: 50 },
+  banknifty: { token: '99926009', exchange: 'NSE', name: 'BANKNIFTY', expiry: 'wednesday', strike: 100 },
+  vix: { token: '99919003', exchange: 'NSE' },
+};
+
+const BASE = 'https://apiconnect.angelone.in';
+
+// All requests go through local proxy (proxy.js) on port 8085
+// which forwards them directly to Angel One over HTTPS — no CORS issues
+// Change RENDER_URL to your Render.com URL after deployment
+// e.g. 'https://nifty-desk.onrender.com'
+// Leave RENDER_URL blank to use localhost (home machine)
+const RENDER_URL = '';
+const API = RENDER_URL || 'http://localhost:8085';
+
+// All calls go to Python backend — it holds the session
+async function apiCall(path) {
+  const res = await fetch(API + path);
+  if (res.status === 401) { document.getElementById('relogin-modal').classList.add('show'); throw new Error('401'); }
+  return res.json();
+}
+
+function getAuth() {
+  try { return JSON.parse(sessionStorage.getItem('auth') || 'null'); } catch { return null; }
+}
+function setAuth(d) { sessionStorage.setItem('auth', JSON.stringify(d)); }
+
+function getHeaders(apiKey, jwt) {
+  const a = getAuth();
+  const key = apiKey || (a && a.apiKey) || '';
+  const token = jwt || (a && a.jwtToken) || '';
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-UserType': 'USER',
+    'X-SourceID': 'WEB',
+    'X-ClientLocalIP': 'CLIENT_LOCAL_IP',
+    'X-ClientPublicIP': 'CLIENT_PUBLIC_IP',
+    'X-MACAddress': 'MAC_ADDRESS',
+    'X-PrivateKey': key,
+  };
+}
+
+// ================================================================
+// TOTP
+// ================================================================
+async function generateTOTP(secret) {
+  const base32Decode = (s) => {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let bits = 0, value = 0, output = [];
+    s = s.toUpperCase().replace(/=+$/, '');
+    for (let i = 0; i < s.length; i++) {
+      value = (value << 5) | alphabet.indexOf(s[i]);
+      bits += 5;
+      if (bits >= 8) { bits -= 8; output.push((value >> bits) & 255); }
+    }
+    return new Uint8Array(output);
+  };
+  const key = base32Decode(secret);
+  let counter = Math.floor(Date.now() / 1000 / 30);
+  const counterBytes = new Uint8Array(8);
+  for (let i = 7; i >= 0; i--) {
+    counterBytes[i] = counter & 0xff;
+    counter = Math.floor(counter / 256);
+  }
+  const cryptoKey = await crypto.subtle.importKey('raw', key, {name:'HMAC',hash:'SHA-1'}, false, ['sign']);
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, counterBytes));
+  const offset = sig[19] & 0xf;
+  const code = (((sig[offset] & 0x7f) << 24) | ((sig[offset+1] & 0xff) << 16) | ((sig[offset+2] & 0xff) << 8) | (sig[offset+3] & 0xff)) % 1000000;
+  return code.toString().padStart(6, '0');
+}
+
+
+// ================================================================
+// DEBUG TEST
+// ================================================================
+async function testConnection() {
+  const out = document.getElementById('debug-out');
+  out.style.display = 'block';
+  out.textContent = 'Testing...\n';
+
+  try {
+    const r = await fetch(API + '/health');
+    const j = await r.json();
+    out.textContent += '\u2713 Proxy running: ' + JSON.stringify(j) + '\n';
+  } catch(e) {
+    out.textContent += '\u2717 Proxy OFFLINE: ' + e.message + '\n  Run:  node proxy.js\n';
+    return;
+  }
+
+  const secret = document.getElementById('l-totp').value.trim();
+  if (secret) {
+    try {
+      const totp = await generateTOTP(secret);
+      out.textContent += '\u2713 TOTP: ' + totp + '\n';
+    } catch(e) {
+      out.textContent += '\u2717 TOTP error: ' + e.message + '\n';
+    }
+  }
+
+  const apiKey = document.getElementById('l-apikey').value.trim();
+  const clientCode = document.getElementById('l-clientcode').value.trim();
+  const pin = document.getElementById('l-pin').value.trim();
+
+  if (!apiKey || !clientCode || !pin || !secret) {
+    out.textContent += '\nFill all fields to test full login.';
+    return;
+  }
+
+  out.textContent += '\nSending test login to Python server...\n';
+  try {
+    const res = await fetch(API + '/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ apikey: apiKey, clientcode: clientCode, pin, totp_secret: secret }),
+    });
+    const text = await res.text();
+    out.textContent += 'HTTP ' + res.status + ':\n' + text.slice(0, 1000);
+  } catch(e) {
+    out.textContent += '\u2717 ' + e.message;
+  }
+}
+
+async function doLogin() {
+  const apiKey = document.getElementById('l-apikey').value.trim();
+  const clientCode = document.getElementById('l-clientcode').value.trim();
+  const pin = document.getElementById('l-pin').value.trim();
+  const totpSecret = document.getElementById('l-totp').value.trim();
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+
+  errEl.style.display = 'none';
+  if (!apiKey || !clientCode || !pin || !totpSecret) {
+    errEl.textContent = 'All fields are required.'; errEl.style.display = 'block'; return;
+  }
+
+  btn.disabled = true; btn.textContent = 'CONNECTING...';
+  try {
+    const res = await fetch(API + '/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ apikey: apiKey, clientcode: clientCode, pin, totp_secret: totpSecret }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      setAuth({ apiKey, clientCode, loggedIn: true });
+      checkSessionDate();
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      initDashboard();
+    } else {
+      errEl.textContent = 'Login failed: ' + (data.message || JSON.stringify(data));
+      errEl.style.display = 'block';
+    }
+  } catch(e) {
+    errEl.textContent = e.message.includes('fetch') || e.message.includes('Failed')
+      ? '⚠ Cannot reach Python server.\nRun:  python server.py'
+      : e.message;
+    errEl.style.display = 'block';
+    errEl.style.whiteSpace = 'pre-line';
+  }
+  btn.disabled = false; btn.textContent = 'CONNECT →';
+}
+
+async function doRelogin() {
+  const pin = document.getElementById('rl-pin').value.trim();
+  const totpSecret = document.getElementById('rl-totp').value.trim();
+  const errEl = document.getElementById('relogin-error');
+  errEl.style.display = 'none';
+  if (!pin || !totpSecret) { errEl.textContent = 'Both fields required.'; errEl.style.display = 'block'; return; }
+  const auth = getAuth();
+  try {
+    const res = await fetch(API + '/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ apikey: auth.apiKey, clientcode: auth.clientCode, pin, totp_secret: totpSecret }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('relogin-modal').classList.remove('show');
+    } else {
+      errEl.textContent = data.message || 'Re-login failed.'; errEl.style.display = 'block';
+    }
+  } catch(e) { errEl.textContent = 'Server error: ' + e.message; errEl.style.display = 'block'; }
+}
+
+function showSettings() { document.getElementById('relogin-modal').classList.add('show'); }
+
+// ================================================================
+// HELPERS
+// ================================================================
+function fmtN(n, dec=2) { if (n == null || isNaN(n)) return '--'; return Number(n).toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function fmtCr(n) { if (n == null || isNaN(n)) return '--'; const v = (n/1e7).toFixed(0); return '₹' + Number(v).toLocaleString('en-IN') + ' Cr'; }
+function nowTS() { return new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}); }
+function nowDate() { return new Date().toISOString().split('T')[0]; }
+
+function getISTHM() {
+  const now = new Date();
+  const ist = new Date(now.toLocaleString('en-US', {timeZone:'Asia/Kolkata'}));
+  return { h: ist.getHours(), m: ist.getMinutes(), s: ist.getSeconds() };
+}
+
+function isMarketOpen() {
+  const {h,m} = getISTHM();
+  const mins = h*60+m;
+  return mins >= 555 && mins < 930; // 9:15 to 15:30
+}
+
+function isPreOpen() {
+  const {h,m} = getISTHM();
+  const mins = h*60+m;
+  return mins >= 540 && mins < 555; // 9:00 to 9:15
+}
+
+function getMarketStatus() {
+  if (isPreOpen()) return 'preopen';
+  if (isMarketOpen()) return 'open';
+  return 'closed';
+}
+
+function updateMarketPill() {
+  const s = getMarketStatus();
+  const el = document.getElementById('market-pill');
+  el.className = 'market-pill ' + s;
+  el.textContent = s === 'open' ? '● OPEN' : s === 'preopen' ? '◑ PRE-OPEN' : '○ CLOSED';
+}
+
+function getISTDateStr() {
+  const now = new Date();
+  const ist = new Date(now.toLocaleString('en-US', {timeZone:'Asia/Kolkata'}));
+  return ist.toISOString().split('T')[0];
+}
+
+function getISTDateTimeStr() {
+  const now = new Date();
+  const ist = new Date(now.toLocaleString('en-US', {timeZone:'Asia/Kolkata'}));
+  const y = ist.getFullYear(), mo = String(ist.getMonth()+1).padStart(2,'0'), d = String(ist.getDate()).padStart(2,'0');
+  const h = String(ist.getHours()).padStart(2,'0'), mi = String(ist.getMinutes()).padStart(2,'0');
+  return `${y}-${mo}-${d} ${h}:${mi}`;
+}
+
+function checkSessionDate() {
+  const today = getISTDateStr();
+  const stored = sessionStorage.getItem('session_date');
+  if (stored !== today) {
+    ['nifty_candles','banknifty_candles','vix_history','oi_snapshots_nifty','oi_snapshots_banknifty'].forEach(k => sessionStorage.removeItem(k));
+    sessionStorage.setItem('session_date', today);
+  }
+}
+
+// Legacy stubs — kept for compatibility, not used directly anymore
+async function apiPost(endpoint, body) { return {}; }
+async function apiGet(endpoint) {
+  if (res.status === 401) { document.getElementById('relogin-modal').classList.add('show'); throw new Error('401'); }
+  return res.json();
+}
+
+function colorCls(n) { return n > 0 ? 'green' : n < 0 ? 'red' : 'amber'; }
+function colorStr(n) { return n > 0 ? '#00d4a1' : n < 0 ? '#ff4d6d' : '#f0a500'; }
+
+function calcEMA(data, period) {
+  if (data.length < period) return null;
+  const k = 2 / (period + 1);
+  let ema = data.slice(0, period).reduce((a,b)=>a+b,0)/period;
+  for (let i = period; i < data.length; i++) ema = data[i] * k + ema * (1-k);
+  return ema;
+}
+
+function calcRSI(closes, period=14) {
+  if (closes.length < period+1) return null;
+  let gains=0, losses=0;
+  for (let i=1;i<=period;i++) {
+    const diff = closes[i]-closes[i-1];
+    if (diff>0) gains+=diff; else losses-=diff;
+  }
+  let avgGain=gains/period, avgLoss=losses/period;
+  for (let i=period+1;i<closes.length;i++) {
+    const diff = closes[i]-closes[i-1];
+    const g=diff>0?diff:0, l=diff<0?-diff:0;
+    avgGain=(avgGain*(period-1)+g)/period;
+    avgLoss=(avgLoss*(period-1)+l)/period;
+  }
+  if (avgLoss===0) return 100;
+  return 100-(100/(1+avgGain/avgLoss));
+}
+
+function calcMACD(closes) {
+  if (closes.length < 35) return null;
+  const ema12 = calcEMA(closes, 12);
+  const ema26 = calcEMA(closes, 26);
+  if (!ema12 || !ema26) return null;
+  const macdLine = ema12 - ema26;
+  // signal: 9 ema of macd values
+  const macdVals = [];
+  const k26 = 2/27, k12 = 2/13;
+  let e12 = closes.slice(0,12).reduce((a,b)=>a+b,0)/12;
+  let e26 = closes.slice(0,26).reduce((a,b)=>a+b,0)/26;
+  for (let i=12;i<closes.length;i++) {
+    e12 = closes[i]*k12+e12*(1-k12);
+    if (i>=25) {
+      e26 = closes[i]*k26+e26*(1-k26);
+      macdVals.push(e12-e26);
+    }
+  }
+  const signal = calcEMA(macdVals, 9);
+  const hist = macdLine - (signal||0);
+  return { macd: macdLine, signal, hist };
+}
+
+function calcVWAP(candles) {
+  let cumPV=0, cumV=0;
+  const today = getISTDateStr();
+  candles.filter(c=>{
+    const d = c.time ? c.time.split(' ')[0] : '';
+    return d===today;
+  }).forEach(c => {
+    const typical = (c.high+c.low+c.close)/3;
+    cumPV += typical*c.volume;
+    cumV += c.volume;
+  });
+  return cumV > 0 ? cumPV/cumV : null;
+}
+
+// ================================================================
+// CLOCK
+// ================================================================
+function startClock() {
+  const tick = () => {
+    const now = new Date();
+    const ist = new Date(now.toLocaleString('en-US', {timeZone:'Asia/Kolkata'}));
+    const t = ist.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+    document.getElementById('header-clock').textContent = t + ' IST';
+    updateMarketPill();
+  };
+  tick(); setInterval(tick, 1000);
+}
+
+// ================================================================
+// TAB SWITCH
+// ================================================================
+function switchTab(tab) {
+  STATE.tab = tab;
+  document.getElementById('tab-nifty').classList.toggle('active', tab==='nifty');
+  document.getElementById('tab-banknifty').classList.toggle('active', tab==='banknifty');
+  renderAll();
+}
+
+function switchOiTab(tab) {
+  STATE.oiTab = tab;
+  document.getElementById('oi-tab-nifty').classList.toggle('active', tab==='nifty');
+  document.getElementById('oi-tab-banknifty').classList.toggle('active', tab==='banknifty');
+  renderOI();
+  fetchOI();
+}
+
+function switchHvzTab(tab) {
+  STATE.hvzTab = tab;
+  document.getElementById('hvz-tab-nifty').classList.toggle('active', tab==='nifty');
+  document.getElementById('hvz-tab-banknifty').classList.toggle('active', tab==='banknifty');
+  renderHVZ();
+}
+
+// ================================================================
+// FETCH QUOTE
+// ================================================================
+async function fetchQuote() {
+  try {
+    const tab = STATE.tab;
+    const tok = TOKENS[tab];
+    const data = await apiCall(`/quote?exchange=${tok.exchange}&token=${tok.token}`);
+    if (data.ok && data.data && data.data.data) {
+      const q = data.data.data;
+      STATE.quote[tab] = { ltp: q.ltp, open: q.open, high: q.high, low: q.low, close: q.close, tradeVolume: q.tradedVolume };
+      STATE.ltp[tab] = q.ltp;
+      renderPrice(); renderSR(); renderTrend();
+    }
+    document.getElementById('price-ts').textContent = nowTS();
+  } catch(e) {
+    if (e.message !== '401') renderError('price-card-body', 'fetchQuote');
+  }
+}
+
+async function fetchVIX() {
+  try {
+    const data = await apiCall(`/quote?exchange=${TOKENS.vix.exchange}&token=${TOKENS.vix.token}`);
+    if (data.ok && data.data && data.data.data) {
+      const q = data.data.data;
+      const vixQ = { ltp: q.ltp, close: q.close };
+      let hist = [];
+      try { hist = JSON.parse(sessionStorage.getItem('vix_history') || '[]'); } catch{}
+      hist.push({ v: q.ltp, t: nowTS() });
+      if (hist.length > 10) hist = hist.slice(-10);
+      sessionStorage.setItem('vix_history', JSON.stringify(hist));
+      STATE.vixHistory = hist;
+      renderVIX(vixQ);
+      document.getElementById('vix-ts').textContent = nowTS();
+    }
+  } catch(e) {
+    if (e.message !== '401') renderError('vix-body', 'fetchVIX');
+  }
+}
+
+// ================================================================
+// FETCH HISTORICAL
+// ================================================================
+async function fetchHistorical(tab, interval, fromdate, todate) {
+  const tok = TOKENS[tab];
+  const from = encodeURIComponent(fromdate);
+  const to   = encodeURIComponent(todate);
+  const data = await apiCall(`/candles?exchange=${tok.exchange}&token=${tok.token}&interval=${interval}&from=${from}&to=${to}`);
+  if (data.ok && data.data && data.data.data) {
+    return data.data.data.map(c => ({
+      time: c[0], open: c[1], high: c[2], low: c[3], close: c[4], volume: c[5]
+    }));
+  }
+  return [];
+}
+
+async function fetchCandles() {
+  const tab = STATE.tab;
+  const today = getISTDateStr();
+  const from = today + ' 09:15';
+  const to = today + ' 15:30';
+  try {
+    const candles = await fetchHistorical(tab, 'FIVE_MINUTE', from, to);
+    STATE.candles[tab] = candles;
+    try { sessionStorage.setItem(`${tab}_candles`, JSON.stringify(candles)); } catch{}
+    renderEMA(); renderMomentum(); renderVWAP();
+  } catch(e) {
+    const stored = sessionStorage.getItem(`${tab}_candles`);
+    if (stored) { try { STATE.candles[tab] = JSON.parse(stored); renderEMA(); renderMomentum(); renderVWAP(); } catch{} }
+    if (e.message !== '401') renderError('ema-body', 'fetchCandles');
+  }
+}
+
+async function fetchKeyLevels() {
+  const tab = STATE.tab;
+  const today = getISTDateStr();
+  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+  const yd = yesterday.toISOString().split('T')[0];
+  const twoago = new Date(today); twoago.setDate(twoago.getDate()-2);
+  const twoagoStr = twoago.toISOString().split('T')[0];
+  try {
+    const daily = await fetchHistorical(tab, 'ONE_DAY', twoagoStr + ' 09:15', today + ' 15:30');
+    const minCandles = await fetchHistorical(tab, 'ONE_MINUTE', today + ' 09:15', today + ' 09:30');
+    const pd = daily[daily.length-2] || daily[daily.length-1];
+    const orH = minCandles.length ? Math.max(...minCandles.map(c=>c.high)) : null;
+    const orL = minCandles.length ? Math.min(...minCandles.map(c=>c.low)) : null;
+    renderKeyLevels(pd, orH, orL);
+    document.getElementById('levels-ts').textContent = nowTS();
+  } catch(e) {
+    if (e.message !== '401') renderError('levels-body', 'fetchKeyLevels');
+  }
+}
+
+async function fetchHVZ() {
+  const tab = STATE.hvzTab;
+  const today = getISTDateStr();
+  const from = new Date(today); from.setDate(from.getDate()-30);
+  const fromStr = from.toISOString().split('T')[0];
+  try {
+    const daily = await fetchHistorical(tab, 'ONE_DAY', fromStr + ' 09:15', today + ' 15:30');
+    renderHVZ(daily);
+  } catch(e) {
+    if (e.message !== '401') renderError('hvz-body', 'fetchHVZ');
+  }
+}
+
+// ================================================================
+// OI
+// ================================================================
+async function fetchScripMaster() {
+  if (STATE.scripMaster) return STATE.scripMaster;
+  try {
+    const res = await fetch(API + '/scripmaster');
+    const data = await res.json();
+    STATE.scripMaster = data;
+    return data;
+  } catch { return null; }
+}
+
+function getNextExpiry(type) {
+  const today = new Date();
+  const targetDay = type === 'nifty' ? 4 : 3; // Thursday=4, Wednesday=3
+  let d = new Date(today);
+  for (let i=0;i<7;i++) {
+    if (d.getDay()===targetDay) break;
+    d.setDate(d.getDate()+1);
+  }
+  const y=d.getFullYear(), mo=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+  const months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  return `${dd}${months[d.getMonth()]}${y}`;
+}
+
+async function fetchOI() {
+  const tab    = STATE.oiTab;
+  const ltp    = STATE.ltp[tab];
+  const name   = tab === 'nifty' ? 'NIFTY' : 'BANKNIFTY';
+  const strike = TOKENS[tab].strike;
+  const atm    = ltp ? Math.round(ltp/strike)*strike : 0;
+  if (!atm) { renderOI(null); return; }
+
+  try {
+    const master = await fetchScripMaster();
+    if (!master) { renderOI(null); return; }
+
+    const expiry  = getNextExpiry(tab);
+    const strikes = [];
+    for (let i=-10;i<=10;i++) strikes.push(atm+i*strike);
+
+    const filtered = master.filter(s => s.exch_seg==='NFO' && s.name===name);
+    const rows = [];
+    for (const st of strikes) {
+      // Match expiry flexibly — try exact then partial
+      const ceOpt = filtered.find(s=>Number(s.strike)===st*100&&s.instrumenttype==='OPTIDX'&&s.symbol.includes('CE')&&s.expiry===expiry)
+                 || filtered.find(s=>Number(s.strike)===st*100&&s.instrumenttype==='OPTIDX'&&s.symbol.includes('CE'));
+      const peOpt = filtered.find(s=>Number(s.strike)===st*100&&s.instrumenttype==='OPTIDX'&&s.symbol.includes('PE')&&s.expiry===expiry)
+                 || filtered.find(s=>Number(s.strike)===st*100&&s.instrumenttype==='OPTIDX'&&s.symbol.includes('PE'));
+      rows.push({ strike: st, ceToken: ceOpt?.token, peToken: peOpt?.token, ceOI:0, peOI:0 });
+    }
+
+    // Build token list and fetch quotes from Python server
+    const ceTokens = rows.filter(r=>r.ceToken).map(r=>'NFO:'+r.ceToken);
+    const peTokens = rows.filter(r=>r.peToken).map(r=>'NFO:'+r.peToken);
+    const allToks  = [...ceTokens, ...peTokens].join(',');
+
+    if (allToks) {
+      const res  = await fetch(`${API}/quotes?tokens=${encodeURIComponent(allToks)}`);
+      const data = await res.json();
+      if (data.ok && data.data && data.data.fetched) {
+        const qMap = {};
+        data.data.fetched.forEach(q => qMap[q.symboltoken] = q);
+        rows.forEach(r => {
+          if (r.ceToken && qMap[r.ceToken]) r.ceOI = qMap[r.ceToken].opnInterest || 0;
+          if (r.peToken && qMap[r.peToken]) r.peOI = qMap[r.peToken].opnInterest || 0;
+        });
+      }
+    }
+
+    // If all OI is zero (market closed) — try previous day candle volume as OI proxy
+    const totalOI = rows.reduce((a,r)=>a+r.ceOI+r.peOI, 0);
+    if (totalOI === 0) {
+      document.getElementById('oi-body').innerHTML = '<div class="error-state text2">Market closed — showing prev day OI from candle volume</div>';
+      // Use prev day ONE_DAY candle for rough OI indication
+      rows.forEach(r => { r.ceOI = 0; r.peOI = 0; });
+    }
+
+    // Save snapshot
+    const {h,m} = getISTHM();
+    const hm = String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+    const snapKey = `oi_snapshots_${tab}`;
+    let snaps = {};
+    try { snaps = JSON.parse(sessionStorage.getItem(snapKey)||'{}'); } catch{}
+    if (STATE.oiSnapTimes.includes(hm)) {
+      snaps[hm] = rows;
+      sessionStorage.setItem(snapKey, JSON.stringify(snaps));
+    }
+    STATE.oiActiveSnap = null;
+    renderOI(rows, atm);
+  } catch(e) {
+    if (e.message !== '401') renderError('oi-body', 'fetchOI');
+  }
+}
+
+// ================================================================
+// FII DII
+// ================================================================
+async function fetchFiiDii() {
+  try {
+    const res = await fetch(API + '/fiidii');
+    const data = await res.json();
+    renderFiiDii(data);
+    document.getElementById('fiidii-ts').textContent = nowTS();
+  } catch(e) {
+    renderError('fiidii-body', 'fetchFiiDii');
+  }
+}
+
+// ================================================================
+// EVENTS
+// ================================================================
+async function fetchEvents() {
+  try {
+    const res = await fetch(API + '/events');
+    const data = await res.json();
+    renderEvents(data);
+    document.getElementById('events-ts').textContent = nowTS();
+  } catch(e) {
+    renderEventsFallback();
+  }
+}
+
+// ================================================================
+// RENDER FUNCTIONS
+// ================================================================
+function renderPrice() {
+  const q = STATE.quote[STATE.tab];
+  if (!q) return;
+  const ltp = q.ltp;
+  const change = ltp - q.close; // change from prev close
+  const changePct = q.close ? (change/q.close)*100 : 0;
+  const cls = change >= 0 ? 'green' : 'red';
+  const sign = change >= 0 ? '+' : '';
+  document.getElementById('price-card-body').innerHTML = `
+    <div class="price-ltp ${cls}">${fmtN(ltp)}</div>
+    <div class="price-change ${cls}">${sign}${fmtN(change)} (${sign}${fmtN(changePct)}%)</div>
+    <div class="price-grid">
+      <div class="price-stat"><div class="price-stat-label">OPEN</div><div class="price-stat-val">${fmtN(q.open)}</div></div>
+      <div class="price-stat"><div class="price-stat-label">HIGH</div><div class="price-stat-val green">${fmtN(q.high)}</div></div>
+      <div class="price-stat"><div class="price-stat-label">LOW</div><div class="price-stat-val red">${fmtN(q.low)}</div></div>
+      <div class="price-stat"><div class="price-stat-label">P.CLOSE</div><div class="price-stat-val">${fmtN(q.close)}</div></div>
+    </div>
+    <div class="price-vol text2">Vol: ${Number(q.tradeVolume||0).toLocaleString('en-IN')}</div>
+  `;
+}
+
+function renderKeyLevels(pd, orH, orL) {
+  const ltp = STATE.ltp[STATE.tab];
+  if (!pd) { document.getElementById('levels-body').innerHTML = '<div class="error-state">No historical data</div>'; return; }
+  const levels = [
+    { label:'PDH', val: pd.high },
+    { label:'PDL', val: pd.low },
+    { label:'PDC', val: pd.close },
+  ];
+  const {h,m} = getISTHM();
+  if (h>9||(h===9&&m>=30)) {
+    if (orH) levels.push({ label:'ORH', val: orH });
+    if (orL) levels.push({ label:'ORL', val: orL });
+  }
+  document.getElementById('levels-body').innerHTML = `
+    <table class="levels-table">
+      ${levels.map(l=>{
+        const dist = ltp ? (ltp - l.val) : 0;
+        const cls = dist < 0 ? 'red' : 'green';
+        const sign = dist >= 0 ? '+' : '';
+        return `<tr>
+          <td>${l.label}</td>
+          <td class="${dist<0?'red':dist>0?'green':''}">${fmtN(l.val)}</td>
+          <td class="${cls}">${ltp ? sign+fmtN(dist,1) : '--'}</td>
+        </tr>`;
+      }).join('')}
+    </table>`;
+}
+
+function renderSR() {
+  const q = STATE.quote[STATE.tab];
+  if (!q) return;
+  const ltp = q.ltp;
+  // Get PDH/PDL from key levels (use stored or defaults)
+  const pdh = q.high, pdl = q.low, range = pdh - pdl;
+  if (range <= 0) return;
+  const levels = [];
+  [1.618,1.0,0.618,0.382].forEach(m => levels.push({ label:'R'+(levels.length+1), val: pdh+range*m, type:'r' }));
+  [0.382,0.618,1.0,1.618].forEach((m,i) => levels.push({ label:'S'+(i+1), val: pdl-range*m, type:'s' }));
+
+  const allVals = [...levels.map(l=>l.val), ltp];
+  const mn = Math.min(...allVals), mx = Math.max(...allVals);
+  const span = mx - mn || 1;
+
+  document.getElementById('sr-body').innerHTML = levels.map(l=>{
+    const dist = ltp - l.val;
+    const absDist = Math.abs(dist);
+    const isRes = l.type==='r';
+    const color = isRes ? '#ff4d6d' : '#00d4a1';
+    const bgColor = isRes ? 'rgba(255,77,109,0.12)' : 'rgba(0,212,161,0.12)';
+    const pct = Math.min(100, Math.max(10, (1/(absDist/range+0.1))*40));
+    const strength = absDist < range*0.2 ? '●●●●' : absDist < range*0.5 ? '●●●○' : absDist < range*1 ? '●●○○' : '●○○○';
+    return `<div class="sr-item">
+      <div class="sr-label" style="color:${color}">${l.label}</div>
+      <div class="sr-bar-wrap">
+        <div class="sr-bar" style="background:${bgColor};width:${pct}%">
+          <span class="sr-price" style="color:${color}">${fmtN(l.val)}</span>
+        </div>
+      </div>
+      <div class="sr-dist" style="color:${color}">${dist>=0?'+':''}${fmtN(dist,0)}</div>
+      <div class="sr-dots" style="color:${color}">${strength}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTrend() {
+  const q = STATE.quote[STATE.tab];
+  if (!q) return;
+  const ltp = q.ltp, open = q.open, pdC = q.close, high = q.high, low = q.low;
+  const gap = open - pdC;
+  const gapPct = pdC ? (gap/pdC)*100 : 0;
+  const gapLabel = Math.abs(gapPct) < 0.1 ? 'FLAT' : gap > 0 ? 'GAP UP' : 'GAP DOWN';
+  const gapCls = gap > 0 ? 'green' : gap < 0 ? 'red' : 'amber';
+  const trendCls = ltp > pdC ? 'green' : ltp < pdC ? 'red' : 'amber';
+  const trendLabel = ltp > pdC ? 'BULLISH ↑' : ltp < pdC ? 'BEARISH ↓' : 'SIDEWAYS →';
+  const dayRange = high - low;
+  const rangePos = dayRange > 0 ? ((ltp-low)/dayRange)*100 : 50;
+  const vwap = calcVWAP(STATE.candles[STATE.tab]);
+  document.getElementById('trend-body').innerHTML = `
+    <div class="trend-row"><span class="trend-label">Trend</span><span class="trend-val ${trendCls}">${trendLabel}</span></div>
+    <div class="trend-row"><span class="trend-label">Gap</span><span class="trend-val ${gapCls}">${gapLabel} ${fmtN(Math.abs(gap),1)} pts (${fmtN(Math.abs(gapPct))}%)</span></div>
+    <div class="trend-row"><span class="trend-label">Day Range</span><span class="trend-val">${fmtN(dayRange,1)} pts</span></div>
+    ${vwap ? `<div class="trend-row"><span class="trend-label">vs VWAP</span><span class="trend-val ${ltp>vwap?'green':'red'}">${ltp>vwap?'ABOVE':'BELOW'} ${fmtN(Math.abs(ltp-vwap),1)} pts</span></div>` : ''}
+    <div style="margin-top:10px"><div style="font-size:10px;color:var(--text2);margin-bottom:6px">RANGE POSITION</div>
+    <div class="range-bar-wrap">
+      <div class="range-bar-fill" style="width:100%"></div>
+      <div class="range-marker" style="left:${rangePos}%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text2);margin-top:4px"><span>${fmtN(low)}</span><span>${fmtN(ltp)}</span><span>${fmtN(high)}</span></div>
+    </div>`;
+}
+
+function renderVIX(q) {
+  const v = q.ltp;
+  let regime, regimeColor, rec, regBg;
+  if (v < 12) { regime='LOW FEAR'; regimeColor='var(--green)'; regBg='rgba(0,212,161,0.15)'; rec='Full lot ok'; }
+  else if (v < 16) { regime='MODERATE'; regimeColor='var(--amber)'; regBg='rgba(240,165,0,0.15)'; rec='Spreads preferred'; }
+  else if (v < 20) { regime='ELEVATED'; regimeColor='#ff8c42'; regBg='rgba(255,140,66,0.15)'; rec='Quarter lot only'; }
+  else { regime='HIGH FEAR'; regimeColor='var(--red)'; regBg='rgba(255,77,109,0.15)'; rec='⚠ Extreme caution'; }
+
+  const change = v - q.close;
+  const sign = change >= 0 ? '+' : '';
+  const hist = STATE.vixHistory;
+  const maxV = hist.length ? Math.max(...hist.map(h=>h.v)) : v;
+  const minV = hist.length ? Math.min(...hist.map(h=>h.v)) : v;
+  const span = (maxV - minV) || 1;
+
+  document.getElementById('vix-body').innerHTML = `
+    <div class="vix-val" style="color:${regimeColor}">${fmtN(v)}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin:4px 0 10px">
+      <span class="vix-regime" style="background:${regBg};color:${regimeColor}">${regime}</span>
+      <span style="font-family:var(--mono);font-size:12px;color:${change>=0?'var(--red)':'var(--green)'}">${sign}${fmtN(change)}</span>
+    </div>
+    <div class="vix-rec text2">${rec}</div>
+    ${hist.length>1?`<div class="sparkline">${hist.map(h=>{
+      const ht = Math.max(4, ((h.v-minV)/span)*28+4);
+      return `<div class="spark-bar" style="height:${ht}px;background:${regimeColor};opacity:0.7"></div>`;
+    }).join('')}</div>`:''}`;
+}
+
+function renderEvents(data) {
+  const today = getISTDateStr();
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
+  const tomStr = tomorrow.toISOString().split('T')[0];
+
+  const todayEvts = (data||[]).filter(e=>e.date&&e.date.startsWith(today));
+  const tomEvts = (data||[]).filter(e=>e.date&&e.date.startsWith(tomStr));
+
+  const highImp = ['FOMC','RBI','CPI','GDP','FED','RATE'];
+  const renderEvt = (e, muted) => {
+    const isHigh = highImp.some(k=>((e.companyName||e.purpose||'').toUpperCase()).includes(k));
+    return `<div class="event-row" style="${muted?'opacity:0.5':''}">
+      <div class="event-time">${e.time||'All day'}</div>
+      <div class="event-name">${isHigh?'⚠ ':''}${e.companyName||e.purpose||'Event'}</div>
+      <div class="event-impact ${isHigh?'event-high':'event-med'}">${isHigh?'HIGH':'MED'}</div>
+    </div>`;
+  };
+
+  document.getElementById('events-body').innerHTML = `
+    ${todayEvts.length ? todayEvts.map(e=>renderEvt(e,false)).join('') : '<div class="error-state text2">No events today</div>'}
+    ${tomEvts.length ? `<div class="events-tomorrow"><div class="events-tomorrow-label">TOMORROW</div>${tomEvts.map(e=>renderEvt(e,true)).join('')}</div>` : ''}`;
+}
+
+function renderEventsFallback() {
+  document.getElementById('events-body').innerHTML = `
+    <div class="error-state text2" style="text-align:left">
+      <div style="margin-bottom:8px">Could not fetch events. Enter manually:</div>
+      <textarea style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--card-border);border-radius:6px;color:var(--text);padding:8px;font-size:12px;min-height:60px" placeholder="e.g. 10:30 RBI Policy · 14:00 US CPI"></textarea>
+    </div>`;
+}
+
+function renderFiiDii(data) {
+  if (!data || !Array.isArray(data)) { renderError('fiidii-body','fetchFiiDii'); return; }
+  const fii = data.find(d=>d.category==='FII/FPI'||d.category==='FII') || data[0];
+  const dii = data.find(d=>d.category==='DII') || data[1];
+  if (!fii && !dii) { renderError('fiidii-body','fetchFiiDii'); return; }
+
+  const fiiNet = fii ? (parseFloat(fii.buyValue||0) - parseFloat(fii.sellValue||0)) : 0;
+  const diiNet = dii ? (parseFloat(dii.buyValue||0) - parseFloat(dii.sellValue||0)) : 0;
+
+  // mini bars: last 5 days from data
+  const last5 = data.slice(0,5).filter(d=>d.category===((fii&&fii.category)||'FII/FPI'));
+
+  document.getElementById('fiidii-body').innerHTML = `
+    <div class="fii-net-large ${fiiNet>=0?'green':'red'}">FII: ${fiiNet>=0?'+':''}${fmtCr(fiiNet)}</div>
+    <div style="font-family:var(--mono);font-size:14px;margin-top:4px ${diiNet>=0?';color:var(--green)':';color:var(--red)'}">DII: ${diiNet>=0?'+':''}${fmtCr(diiNet)}</div>
+    <table class="fii-table" style="margin-top:12px">
+      <tr><th></th><th>Buy</th><th>Sell</th><th>Net</th></tr>
+      ${fii?`<tr><td>FII</td><td>${fmtCr(fii.buyValue)}</td><td>${fmtCr(fii.sellValue)}</td><td class="${fiiNet>=0?'green':'red'}">${fiiNet>=0?'+':''}${fmtCr(fiiNet)}</td></tr>`:''}
+      ${dii?`<tr><td>DII</td><td>${fmtCr(dii.buyValue)}</td><td>${fmtCr(dii.sellValue)}</td><td class="${diiNet>=0?'green':'red'}">${diiNet>=0?'+':''}${fmtCr(diiNet)}</td></tr>`:''}
+    </table>
+    <div class="refresh-row">
+      <button class="refresh-btn" onclick="fetchFiiDii()">↻ REFRESH</button>
+      <span class="refresh-cd" id="fii-cd">Next in ${STATE.fiiDiiCountdown}s</span>
+    </div>`;
+}
+
+function renderOI(rows, atm) {
+  // Snapshot pills
+  const {h,m} = getISTHM();
+  const curMins = h*60+m;
+  const snapsEl = document.getElementById('oi-snaps');
+  snapsEl.innerHTML = STATE.oiSnapTimes.map(t => {
+    const [sh,sm] = t.split(':').map(Number);
+    const isFuture = curMins < sh*60+sm;
+    const isActive = STATE.oiActiveSnap === t;
+    return `<span class="snap-pill${isActive?' active':''}${isFuture?' future':''}" onclick="${isFuture?'':'loadOiSnap(\''+t+'\')'}">${t}</span>`;
+  }).join('');
+
+  if (!rows || rows.length === 0) {
+    document.getElementById('oi-body').innerHTML = `<div class="error-state">Fetching OI data...<br><button class="retry-btn" onclick="fetchOI()">Retry</button></div>`;
+    return;
+  }
+
+  const maxCeOI = Math.max(...rows.map(r=>r.ceOI));
+  const maxPeOI = Math.max(...rows.map(r=>r.peOI));
+  const maxCeRow = rows.findIndex(r=>r.ceOI===maxCeOI);
+  const maxPeRow = rows.findIndex(r=>r.peOI===maxPeOI);
+  const totalCE = rows.reduce((a,r)=>a+r.ceOI,0);
+  const totalPE = rows.reduce((a,r)=>a+r.peOI,0);
+  const pcr = totalCE > 0 ? (totalPE/totalCE) : 0;
+
+  // Max pain
+  let maxPainStrike = rows[0]?.strike, maxPainLoss = Infinity;
+  rows.forEach(target => {
+    const loss = rows.reduce((a,r) => {
+      const ceL = Math.max(0, r.strike-target.strike)*r.ceOI;
+      const peL = Math.max(0, target.strike-r.strike)*r.peOI;
+      return a+ceL+peL;
+    },0);
+    if (loss < maxPainLoss) { maxPainLoss = loss; maxPainStrike = target.strike; }
+  });
+
+  const fmtOI = v => v >= 1e7 ? (v/1e7).toFixed(1)+'Cr' : v >= 1e5 ? (v/1e5).toFixed(1)+'L' : v >= 1000 ? (v/1e3).toFixed(0)+'K' : v;
+  const pcrCls = pcr > 1.2 ? 'green' : pcr < 0.8 ? 'red' : 'amber';
+  const pcrLabel = pcr > 1.2 ? 'Bullish' : pcr < 0.8 ? 'Bearish' : 'Neutral';
+
+  document.getElementById('oi-body').innerHTML = `
+    <div style="overflow-x:auto">
+    <table class="oi-table">
+      <tr><th>CE OI</th><th>CE Δ</th><th>STRIKE</th><th>PE OI</th><th>PE Δ</th></tr>
+      ${rows.map((r,i)=>{
+        const isAtm = r.strike===atm;
+        const isMxCe = i===maxCeRow;
+        const isMxPe = i===maxPeRow;
+        return `<tr class="${isAtm?'atm-row':''} ${isMxCe?'max-ce':''} ${isMxPe?'max-pe':''}">
+          <td>${fmtOI(r.ceOI)}</td>
+          <td class="${r.ceChg>=0?'green':'red'}">${r.ceChg?fmtOI(r.ceChg):'-'}</td>
+          <td style="font-weight:600">${r.strike}</td>
+          <td>${fmtOI(r.peOI)}</td>
+          <td class="${r.peChg>=0?'green':'red'}">${r.peChg?fmtOI(r.peChg):'-'}</td>
+        </tr>`;
+      }).join('')}
+    </table>
+    </div>
+    <div class="oi-metrics">
+      <div class="oi-metric">
+        <div class="oi-metric-label">PCR</div>
+        <div class="oi-metric-val ${pcrCls}">${fmtN(pcr,2)}</div>
+        <div class="oi-metric-sub ${pcrCls}">${pcrLabel}</div>
+      </div>
+      <div class="oi-metric">
+        <div class="oi-metric-label">MAX PAIN</div>
+        <div class="oi-metric-val amber">${maxPainStrike}</div>
+        <div class="oi-metric-sub text2">Strike</div>
+      </div>
+    </div>`;
+}
+
+function loadOiSnap(t) {
+  const key = `oi_snapshots_${STATE.oiTab}`;
+  let snaps = {};
+  try { snaps = JSON.parse(sessionStorage.getItem(key)||'{}'); } catch{}
+  if (snaps[t]) {
+    STATE.oiActiveSnap = t;
+    const atm = STATE.ltp[STATE.oiTab] ? Math.round(STATE.ltp[STATE.oiTab]/TOKENS[STATE.oiTab].strike)*TOKENS[STATE.oiTab].strike : null;
+    renderOI(snaps[t], atm);
+  }
+}
+
+function renderEMA() {
+  const renderBox = (tab) => {
+    const candles = STATE.candles[tab];
+    const closes = candles.map(c=>c.close);
+    if (closes.length < 26) return `<div class="ema-box"><div class="ema-box-title">${tab.toUpperCase()}</div><div class="text2" style="font-size:11px">Need 26+ candles</div></div>`;
+    const ema9 = calcEMA(closes, 9);
+    const ema26 = calcEMA(closes, 26);
+    const ltp = closes[closes.length-1];
+    const cross = ema9 > ema26 ? 'bull' : 'bear';
+    const crossLabel = ema9 > ema26 ? '9 ABOVE 26' : '9 BELOW 26';
+    const posLabel = ltp > ema9 && ltp > ema26 ? 'Above Both' : ltp < ema9 && ltp < ema26 ? 'Below Both' : 'Between';
+    // slope from last 3 ema9 values
+    const recent = closes.slice(-3);
+    const e1=calcEMA(closes.slice(0,-2),9), e2=calcEMA(closes.slice(0,-1),9), e3=ema9;
+    const slope = e3>e2&&e2>e1?'↑ Curling Up':e3<e2&&e2<e1?'↓ Curling Down':'→ Flat';
+    const slopeCls = slope.includes('Up')?'green':slope.includes('Down')?'red':'amber';
+    return `<div class="ema-box">
+      <div class="ema-box-title">${tab==='nifty'?'NIFTY':'BANKNIFTY'}</div>
+      <div class="ema-val-row"><span class="ema-label">9 EMA</span><span class="ema-val">${fmtN(ema9)}</span></div>
+      <div class="ema-val-row"><span class="ema-label">26 EMA</span><span class="ema-val">${fmtN(ema26)}</span></div>
+      <div class="ema-val-row"><span class="ema-label">Price</span><span class="ema-val">${posLabel}</span></div>
+      <div class="ema-val-row"><span class="ema-label">Slope</span><span class="ema-val ${slopeCls}">${slope}</span></div>
+      <div class="ema-signal ${cross}">${crossLabel}</div>
+    </div>`;
+  };
+  document.getElementById('ema-body').innerHTML = `
+    <div class="ema-grid">${renderBox('nifty')}${renderBox('banknifty')}</div>
+    <button class="update-btn" onclick="fetchCandles()">↻ UPDATE EMA / RSI / MACD / VWAP</button>`;
+}
+
+function renderMomentum() {
+  const renderBox = (tab) => {
+    const candles = STATE.candles[tab];
+    const closes = candles.map(c=>c.close);
+    const rsi = calcRSI(closes);
+    const macd = calcMACD(closes);
+
+    let rsiCls='amber', rsiLabel='NO DATA';
+    if (rsi!==null) {
+      rsiCls = rsi<30?'red':rsi<50?'amber':rsi<70?'green':'red';
+      rsiLabel = rsi<30?'OVERSOLD':rsi<50?'BEARISH ZONE':rsi<70?'BULLISH ZONE':'OVERBOUGHT';
+    }
+    const rsiAngle = rsi ? (rsi/100)*180 : 90;
+    // SVG arc gauge
+    const cx=50,cy=45,r=35;
+    const bgArc = `M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`;
+    const ang = Math.min(179,(rsiAngle||0))*Math.PI/180;
+    const x2 = cx - r*Math.cos(ang), y2 = cy - r*Math.sin(ang);
+    const lf = rsiAngle>90?1:0;
+    const fillArc = rsi!==null ? `M ${cx-r} ${cy} A ${r} ${r} 0 ${lf} 1 ${x2} ${y2}` : '';
+
+    const rsiColorMap = {red:'#ff4d6d',amber:'#f0a500',green:'#00d4a1'};
+    const rsiCol = rsiColorMap[rsiCls];
+
+    let macdHtml='';
+    if (macd) {
+      const mCls = macd.macd > (macd.signal||0) ? 'green' : 'red';
+      const sigLabel = macd.macd > (macd.signal||0) ? 'MACD ABOVE SIGNAL' : 'MACD BELOW SIGNAL';
+      macdHtml = `<div style="margin-top:8px">
+        <div style="font-size:9px;color:var(--text2);letter-spacing:1px;margin-bottom:6px">MACD (12,26,9)</div>
+        <div class="macd-row"><span class="macd-key">MACD</span><span class="macd-val ${mCls}">${fmtN(macd.macd,2)}</span></div>
+        <div class="macd-row"><span class="macd-key">Signal</span><span class="macd-val">${fmtN(macd.signal,2)}</span></div>
+        <div class="macd-row"><span class="macd-key">Hist</span><span class="macd-val ${macd.hist>=0?'green':'red'}">${fmtN(macd.hist,2)}</span></div>
+        <div style="font-size:10px;font-weight:600;color:${macd.macd>(macd.signal||0)?'var(--green)':'var(--red)'};margin-top:6px">${sigLabel}</div>
+      </div>`;
+    }
+
+    return `<div class="momentum-box">
+      <div class="momentum-box-title">${tab==='nifty'?'NIFTY':'BANKNIFTY'}</div>
+      <svg viewBox="0 0 100 50" width="100" height="50" style="display:block;margin:0 auto">
+        <path d="${bgArc}" stroke="rgba(255,255,255,0.08)" stroke-width="6" fill="none"/>
+        ${fillArc?`<path d="${fillArc}" stroke="${rsiCol}" stroke-width="6" fill="none" stroke-linecap="round"/>`:''}
+      </svg>
+      <div class="rsi-val-big" style="color:${rsiCol}">${rsi!==null?fmtN(rsi,1):'--'}</div>
+      <div class="rsi-label" style="color:${rsiCol}">${rsiLabel}</div>
+      ${macdHtml}
+    </div>`;
+  };
+  document.getElementById('momentum-body').innerHTML = `<div class="momentum-grid">${renderBox('nifty')}${renderBox('banknifty')}</div>`;
+}
+
+function renderVWAP() {
+  const tab = STATE.tab;
+  const candles = STATE.candles[tab];
+  const ltp = STATE.ltp[tab];
+  const vwap = calcVWAP(candles);
+  if (!vwap) { document.getElementById('vwap-body').innerHTML = '<div class="error-state text2">VWAP requires intraday candles (9:15 AM onwards)</div>'; return; }
+
+  const dist = ltp ? ltp-vwap : 0;
+  const distPct = vwap ? (dist/vwap)*100 : 0;
+  const posCls = dist>=0?'green':'red';
+  const posLabel = dist>=0?'ABOVE VWAP':'BELOW VWAP';
+
+  // Slope: compare current vwap to 6 candles ago (30 min)
+  let slope = '→ FLAT', slopeCls = 'amber', slopeDesc = 'Neutral — no clear direction';
+  if (candles.length >= 7) {
+    const old = candles.slice(0,-6);
+    const oldVwap = calcVWAP(old.concat(candles.slice(-6).slice(0,-6)));
+    if (vwap > oldVwap*1.0002) { slope='↑ UPWARD'; slopeCls='green'; slopeDesc='Bullish — buyers in control'; }
+    else if (vwap < oldVwap*0.9998) { slope='↓ DOWNWARD'; slopeCls='red'; slopeDesc='Bearish — sellers in control'; }
+  }
+
+  document.getElementById('vwap-body').innerHTML = `
+    <div class="vwap-val">${fmtN(vwap)}</div>
+    <div class="vwap-rows">
+      <div class="vwap-row"><span class="vwap-row-label">Position</span><span class="vwap-row-val ${posCls}">${posLabel}</span></div>
+      <div class="vwap-row"><span class="vwap-row-label">Distance</span><span class="vwap-row-val ${posCls}">${dist>=0?'+':''}${fmtN(dist,1)} pts (${fmtN(distPct)}%)</span></div>
+      <div class="vwap-row"><span class="vwap-row-label">Slope</span><span class="vwap-row-val ${slopeCls}">${slope}</span></div>
+      <div class="vwap-row"><span class="vwap-row-label">Bias</span><span class="vwap-row-val text2" style="font-size:11px">${slopeDesc}</span></div>
+    </div>`;
+}
+
+function renderHVZ(daily) {
+  const tab = STATE.hvzTab;
+  const sessions = daily ? daily.slice(-22) : [];
+  if (sessions.length < 2) { document.getElementById('hvz-body').innerHTML = '<div class="error-state text2">Need historical data</div>'; return; }
+
+  const allH = sessions.map(s=>s.high), allL = sessions.map(s=>s.low);
+  const priceMin = Math.min(...allL), priceMax = Math.max(...allH);
+  const bucketSize = (priceMax-priceMin)/20;
+  if (bucketSize <= 0) return;
+
+  const buckets = Array.from({length:20},(_,i)=>({
+    lo: priceMin+i*bucketSize,
+    hi: priceMin+(i+1)*bucketSize,
+    count: 0,
+  }));
+
+  sessions.forEach(s=>{
+    buckets.forEach(b=>{
+      if (s.high>=b.lo && s.low<=b.hi) b.count++;
+    });
+  });
+
+  buckets.sort((a,b)=>b.count-a.count);
+  const top3 = buckets.slice(0,3);
+  const ltp = STATE.ltp[tab];
+
+  document.getElementById('hvz-body').innerHTML = `
+    <div class="hvz-items">
+      ${top3.map((b,i)=>{
+        const stars=['★★★','★★','★'][i];
+        const alpha=[0.25,0.18,0.12][i];
+        const isCurrent = ltp && ltp>=b.lo && ltp<=b.hi;
+        return `<div class="hvz-item">
+          <div class="hvz-item-stars" style="opacity:${1-i*0.25}">${stars}</div>
+          <div class="hvz-item-range">
+            <span style="background:rgba(240,165,0,${alpha});border-radius:4px;padding:3px 8px;display:block">
+              ${fmtN(b.lo)} – ${fmtN(b.hi)}
+              ${isCurrent?'<span style="color:var(--amber)"> ← LTP</span>':''}
+            </span>
+          </div>
+          <div class="hvz-item-cnt text2">${b.count} sessions</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:8px">Based on last ${sessions.length} sessions · ${fmtN(priceMin)}–${fmtN(priceMax)}</div>`;
+}
+
+function renderError(id, fn) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = `<div class="error-state"><span style="color:var(--text2)">Failed to load</span><br><button class="retry-btn" onclick="${fn}()">↻ Retry</button></div>`;
+}
+
+function renderAll() {
+  renderPrice();
+  renderSR();
+  renderTrend();
+  renderEMA();
+  renderMomentum();
+  renderVWAP();
+}
+
+// ================================================================
+// INIT & INTERVALS
+// ================================================================
+async function initDashboard() {
+  startClock();
+  renderOiSnaps();
+  // Initial fetches
+  await Promise.allSettled([fetchQuote(), fetchVIX(), fetchCandles(), fetchKeyLevels(), fetchFiiDii(), fetchEvents(), fetchHVZ()]);
+  fetchOI();
+
+  // Auto-refresh
+  setInterval(() => {
+    if (isMarketOpen() || isPreOpen()) { fetchQuote(); fetchVIX(); }
+  }, 15000);
+
+  setInterval(() => {
+    if (isMarketOpen()) fetchCandles();
+  }, 5*60*1000);
+
+  setInterval(() => {
+    fetchFiiDii();
+    STATE.fiiDiiCountdown = 3600;
+  }, 60*60*1000);
+
+  setInterval(() => {
+    if (isMarketOpen()) fetchOI();
+  }, 60*60*1000);
+
+  setInterval(() => {
+    STATE.fiiDiiCountdown = Math.max(0, STATE.fiiDiiCountdown-1);
+    const el = document.getElementById('fii-cd');
+    if (el) el.textContent = `Next in ${STATE.fiiDiiCountdown}s`;
+  }, 1000);
+
+  // OI snapshots at exact times
+  setInterval(() => {
+    if (!isMarketOpen()) return;
+    const {h,m} = getISTHM();
+    const hm = String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+    if (STATE.oiSnapTimes.includes(hm)) fetchOI();
+    renderOiSnaps();
+  }, 60000);
+}
+
+function renderOiSnaps() {
+  const {h,m} = getISTHM();
+  const curMins = h*60+m;
+  const snapsEl = document.getElementById('oi-snaps');
+  if (!snapsEl) return;
+  snapsEl.innerHTML = STATE.oiSnapTimes.map(t => {
+    const [sh,sm] = t.split(':').map(Number);
+    const isFuture = curMins < sh*60+sm;
+    const isActive = STATE.oiActiveSnap === t;
+    return `<span class="snap-pill${isActive?' active':''}${isFuture?' future':''}" onclick="${isFuture?'':'loadOiSnap(\''+t+'\')'}">${t}</span>`;
+  }).join('');
+}
+
+// ================================================================
+// STARTUP
+// ================================================================
+window.onload = () => {
+  const auth = getAuth();
+  if (auth && auth.jwtToken) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    checkSessionDate();
+    initDashboard();
+  }
+};
+</script>
+</body>
+</html>
