@@ -2,3 +2,4 @@ smartapi-python==1.5.5
 pyotp
 websocket-client
 requests
+logzero
